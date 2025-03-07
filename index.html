@@ -29,6 +29,10 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 20px;
+            position: relative;
+            margin: 20px auto;
+            min-height: 650px;
+            width: 100%;
         }
         .politician-card {
             width: 250px;
@@ -38,10 +42,12 @@
             box-shadow: 0 4px 8px rgba(255, 51, 0, 0.4);
             transition: all 0.3s ease;
             border: 1px solid #3d0000;
+            position: absolute;
         }
         .politician-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.02) !important;
             box-shadow: 0 6px 15px rgba(255, 0, 0, 0.6), 0 0 20px rgba(255, 51, 0, 0.4);
+            z-index: 100;
         }
         .politician-img {
             width: 100%;
@@ -128,12 +134,44 @@
         .results-table tr:hover {
             background-color: #2a0000;
         }
+        @keyframes fireGlow {
+            0% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.8), 0 0 30px rgba(255, 51, 0, 0.4); }
+            100% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+        }
+        .rank-badge {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #FF3300, #AA0000);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            border: 2px solid #FFF;
+            z-index: 5;
+            box-shadow: 0 0 10px rgba(255, 51, 0, 0.6);
+            animation: fireGlow 2s infinite;
+        }
+        .animate-rankchange {
+            animation: rankChange 0.5s ease;
+        }
+        @keyframes rankChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
     </style>
+    
 </head>
 <body>
     <h1>🔥 Australian Politicians: Hot or Not? 🔥</h1>
     <div class="intro">
-        <p>Rate Australian politicians based on their attractiveness. Click "Hot" or "Not" to cast your vote!</p>
+        <p>Rate Australian politicians based on their attractiveness. As you vote, politicians will dynamically re-arrange based on their ranking!</p>
     </div>
     
     <div class="ranking-container" id="politicianContainer">
@@ -185,7 +223,7 @@
                 name: "Penny Wong",
                 party: "Labor Party",
                 position: "Foreign Minister",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Penny_Wong_in_2018.jpg/330px-Penny_Wong_in_2018.jpg",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Penny_Wong_DFAT_official_%28cropped%29.jpg/330px-Penny_Wong_DFAT_official_%28cropped%29.jpg",
                 hotVotes: 0,
                 notVotes: 0
             },
@@ -212,7 +250,7 @@
                 name: "Jim Chalmers",
                 party: "Labor Party",
                 position: "Treasurer",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Jim_Chalmers.jpg/330px-Jim_Chalmers.jpg",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Jim_Chalmers_2020.jpg/330px-Jim_Chalmers_2020.jpg",
                 hotVotes: 0,
                 notVotes: 0
             },
@@ -221,7 +259,7 @@
                 name: "Sussan Ley",
                 party: "Liberal Party",
                 position: "Deputy Leader of the Opposition",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Sussan_Ley_2022_crop.jpg/330px-Sussan_Ley_2022_crop.jpg",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/SL_-_2012_Profile.jpg/330px-SL_-_2012_Profile.jpg",
                 hotVotes: 0,
                 notVotes: 0
             },
@@ -230,7 +268,7 @@
                 name: "Larissa Waters",
                 party: "Greens",
                 position: "Senator",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Senator_Waters_2017.jpg/330px-Senator_Waters_2017.jpg",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Larissa_Waters_2019.png/330px-Larissa_Waters_2019.png",
                 hotVotes: 0,
                 notVotes: 0
             },
@@ -298,25 +336,103 @@
             return ((politician.hotVotes / totalVotes) * 100).toFixed(1);
         };
 
-        // Render politician cards
+        // Sort politicians by score
+        const getSortedPoliticians = () => {
+            return [...politicians].sort((a, b) => {
+                const scoreA = parseFloat(calculateScore(a));
+                const scoreB = parseFloat(calculateScore(b));
+                return scoreB - scoreA;
+            });
+        };
+
+        // Add animation class for smooth transitions
+        const addTransitionStyles = () => {
+            const style = document.createElement('style');
+            style.textContent = `
+                .politician-card {
+                    transition: all 0.7s ease-in-out;
+                }
+                .politician-card.animate {
+                    transform: scale(1.05);
+                    box-shadow: 0 8px 20px rgba(255, 0, 0, 0.8), 0 0 30px rgba(255, 51, 0, 0.6);
+                }
+                @keyframes rankChange {
+                    0% { opacity: 0.5; transform: translateY(10px); }
+                    50% { opacity: 1; transform: translateY(-5px); }
+                    100% { opacity: 1; transform: translateY(0); }
+                }
+                .rank-display {
+                    position: absolute;
+                    top: -15px;
+                    left: -15px;
+                    width: 40px;
+                    height: 40px;
+                    background-color: #FF3300;
+                    border-radius: 50%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    font-weight: bold;
+                    box-shadow: 0 2px 10px rgba(255, 0, 0, 0.5);
+                    z-index: 10;
+                    border: 2px solid #FFF;
+                }
+                .rank-changed {
+                    animation: rankChange 1s ease;
+                }
+                .ranking-container {
+                    position: relative;
+                    min-height: 650px;
+                }
+                .politician-card {
+                    position: absolute;
+                    transition: transform 0.8s ease, top 0.8s ease, left 0.8s ease;
+                }
+            `;
+            document.head.appendChild(style);
+        };
+
+        // Render politician cards in a grid based on their ranking
         const renderPoliticians = () => {
             const container = document.getElementById('politicianContainer');
             container.innerHTML = '';
             
-            politicians.forEach(politician => {
-                const card = document.createElement('div');
-                card.className = 'politician-card';
+            // For positioning, create a grid layout
+            const cardWidth = 250; // card width + margin
+            const cardHeight = 480; // approximate card height + margin
+            const cardsPerRow = 4; // how many cards per row
+            const horizontalGap = 20;
+            const verticalGap = 20;
+            
+            // Position each card according to its rank
+            const sortedPoliticians = getSortedPoliticians();
+            
+            sortedPoliticians.forEach((politician, index) => {
+                const row = Math.floor(index / cardsPerRow);
+                const col = index % cardsPerRow;
+                
+                const leftPosition = col * (cardWidth + horizontalGap);
+                const topPosition = row * (cardHeight + verticalGap);
                 
                 const score = calculateScore(politician);
                 
+                const card = document.createElement('div');
+                card.className = 'politician-card';
+                card.id = `politician-${politician.id}`;
+                card.dataset.politicianId = politician.id;
+                card.style.left = `${leftPosition}px`;
+                card.style.top = `${topPosition}px`;
+                
                 card.innerHTML = `
+                    <div class="rank-display">#${index + 1}</div>
                     <img src="${politician.image}" alt="${politician.name}" class="politician-img">
                     <div class="politician-info">
                         <h2 class="politician-name">${politician.name}</h2>
                         <p class="politician-party">${politician.party} - ${politician.position}</p>
                         <div class="rating-buttons">
-                            <button class="rating-btn hot-btn" onclick="voteHot(${politician.id})">Hot</button>
-                            <button class="rating-btn not-btn" onclick="voteNot(${politician.id})">Not</button>
+                            <button class="rating-btn hot-btn" onclick="voteHot(${politician.id})">HOT</button>
+                            <button class="rating-btn not-btn" onclick="voteNot(${politician.id})">NOT</button>
                         </div>
                         <div class="score">Score: ${score}%</div>
                     </div>
@@ -324,6 +440,10 @@
                 
                 container.appendChild(card);
             });
+            
+            // Set container height to accommodate all cards
+            const rows = Math.ceil(politicians.length / cardsPerRow);
+            container.style.height = `${rows * (cardHeight + verticalGap)}px`;
         };
 
         // Render results table
@@ -331,11 +451,7 @@
             const tbody = document.getElementById('resultsTable');
             tbody.innerHTML = '';
             
-            const sortedPoliticians = [...politicians].sort((a, b) => {
-                const scoreA = calculateScore(a);
-                const scoreB = calculateScore(b);
-                return scoreB - scoreA;
-            });
+            const sortedPoliticians = getSortedPoliticians();
             
             sortedPoliticians.forEach((politician, index) => {
                 const score = calculateScore(politician);
@@ -354,13 +470,32 @@
             });
         };
 
+        // Animate the card that was just voted on and update positions
+        const animateVote = (id) => {
+            const card = document.getElementById(`politician-${id}`);
+            if (card) {
+                card.classList.add('animate');
+                
+                // Remove the animation class after it completes
+                setTimeout(() => {
+                    card.classList.remove('animate');
+                }, 800);
+            }
+            
+            // Re-render all cards to update positions
+            renderPoliticians();
+        };
+
         // Vote functions
         window.voteHot = (id) => {
             const politician = politicians.find(p => p.id === id);
             if (politician) {
+                const oldScore = calculateScore(politician);
                 politician.hotVotes++;
                 saveVotes();
-                renderPoliticians();
+                
+                // Animate and reposition
+                animateVote(id);
                 renderResults();
             }
         };
@@ -368,15 +503,19 @@
         window.voteNot = (id) => {
             const politician = politicians.find(p => p.id === id);
             if (politician) {
+                const oldScore = calculateScore(politician);
                 politician.notVotes++;
                 saveVotes();
-                renderPoliticians();
+                
+                // Animate and reposition
+                animateVote(id);
                 renderResults();
             }
         };
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
+            addTransitionStyles();
             loadVotes();
             renderPoliticians();
             renderResults();
