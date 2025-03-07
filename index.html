@@ -165,16 +165,51 @@
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
+        #loadingIndicator {
+            text-align: center;
+            color: #FF3300;
+            font-size: 20px;
+            margin: 30px 0;
+        }
+        .vote-stats {
+            background-color: #1a0000;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid #3d0000;
+            box-shadow: 0 4px 8px rgba(255, 51, 0, 0.4);
+        }
+        .vote-stats h3 {
+            color: #FF3300;
+            margin-top: 0;
+        }
+        .status-message {
+            background-color: rgba(255, 51, 0, 0.2);
+            border: 1px solid #FF3300;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
     </style>
     
 </head>
 <body>
     <h1>🔥 Australian Politicians: Hot or Not? 🔥</h1>
     <div class="intro">
-        <p>Rate Australian politicians based on their attractiveness. As you vote, politicians will dynamically re-arrange based on their ranking!</p>
+        <p>Rate Australian politicians based on their attractiveness. All votes are saved to our database!</p>
+        <div class="vote-stats">
+            <h3>Vote Statistics</h3>
+            <p id="totalVotes">Total votes: Loading...</p>
+        </div>
     </div>
     
-    <div class="ranking-container" id="politicianContainer">
+    <div class="status-message" id="statusMessage"></div>
+    <div id="loadingIndicator">Loading politicians data...</div>
+    
+    <div class="ranking-container" id="politicianContainer" style="display:none">
         <!-- Politicians will be dynamically added here -->
     </div>
     
@@ -198,151 +233,31 @@
     </div>
 
     <script>
-        // Australian politicians data
-        const politicians = [
-            {
-                id: 13,
-                name: "Anthony Albanese",
-                party: "Labor Party",
-                position: "Prime Minister",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Anthony_Albanese_portrait_%28re-crop%29.jpg/330px-Anthony_Albanese_portrait_%28re-crop%29.jpg",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 2,
-                name: "Peter Dutton",
-                party: "Liberal Party",
-                position: "Leader of the Opposition",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Peter-Dutton-2022.jpg/330px-Peter-Dutton-2022.jpg",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 3,
-                name: "Penny Wong",
-                party: "Labor Party",
-                position: "Foreign Minister",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Penny_Wong_DFAT_official_%28cropped%29.jpg/330px-Penny_Wong_DFAT_official_%28cropped%29.jpg",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 4,
-                name: "Adam Bandt",
-                party: "Greens",
-                position: "Leader of the Australian Greens",
-                image: "https://upload.wikimedia.org/wikipedia/commons/1/10/Adam-Bandt-profile-2021_%28Cropped%29.png",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 5,
-                name: "Tanya Plibersek",
-                party: "Labor Party",
-                position: "Minister for the Environment",
-                image: "https://upload.wikimedia.org/wikipedia/commons/0/08/Tanya_Plibersek.png",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 6,
-                name: "Jim Chalmers",
-                party: "Labor Party",
-                position: "Treasurer",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Jim_Chalmers_2020.jpg/330px-Jim_Chalmers_2020.jpg",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 7,
-                name: "Sussan Ley",
-                party: "Liberal Party",
-                position: "Deputy Leader of the Opposition",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/SL_-_2012_Profile.jpg/330px-SL_-_2012_Profile.jpg",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 8,
-                name: "Larissa Waters",
-                party: "Greens",
-                position: "Senator",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Larissa_Waters_2019.png/330px-Larissa_Waters_2019.png",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 9,
-                name: "Richard Marles",
-                party: "Labor Party",
-                position: "Deputy Prime Minister",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Australian_Minister_for_Defence_Richard_Marles_at_the_Pentagon%2C_Washington%2C_D.C.%2C_Aug._5%2C_2024_-_5_%28cropped%29.jpg/330px-Australian_Minister_for_Defence_Richard_Marles_at_the_Pentagon%2C_Washington%2C_D.C.%2C_Aug._5%2C_2024_-_5_%28cropped%29.jpg",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 10,
-                name: "Pauline Hanson",
-                party: "One Nation",
-                position: "Senator",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Pauline_Hanson_2017_05_%28cropped%29.jpg/330px-Pauline_Hanson_2017_05_%28cropped%29.jpg",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 11,
-                name: "Jacqui Lambie",
-                party: "Jacqui Lambie Network",
-                position: "Senator",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Lambie_2017_%28cropped%29.png/330px-Lambie_2017_%28cropped%29.png",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 12,
-                name: "David Pocock",
-                party: "Independent",
-                position: "Senator",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/David_Pocock_park_%28cropped%29.jpg/330px-David_Pocock_park_%28cropped%29.jpg",
-                hotVotes: 0,
-                notVotes: 0
-            },
-            {
-                id: 1,
-                name: "Andrew nobody cares",
-                party: "Independent",
-                position: "fake pirate",
-                image: "https://scontent.fsyd12-1.fna.fbcdn.net/v/t1.6435-9/120348166_10158676911993684_5341719069768623820_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=wwY4wJB9i50Q7kNvgETjqBq&_nc_oc=AdhgkyDmEE4SQfUeGefsjEwDmFttguZV_GIztdeZOarMdUZcsIKaXC2IBMQTinqaL0Q&_nc_zt=23&_nc_ht=scontent.fsyd12-1.fna&_nc_gid=AgP3FhKAGizsnpA6remFS9l&oh=00_AYFXpOYkTJrFt7Und6w4zQWlSZa0xnvX81dQSSrzdaZJww&oe=67F255A1",
-                hotVotes: 0,
-                notVotes: 0
-            }
-        ];
+        // API URL - Change this to your Cloudflare Worker URL
+        const API_URL = 'https://hotornot.omar-c29.workers.dev/';
+        
+        // Store politicians data
+        let politicians = [];
 
-        // Store user votes in local storage
-        const loadVotes = () => {
-            const savedVotes = localStorage.getItem('politicianVotes');
-            if (savedVotes) {
-                const parsedVotes = JSON.parse(savedVotes);
-                politicians.forEach(politician => {
-                    const savedPolitician = parsedVotes.find(p => p.id === politician.id);
-                    if (savedPolitician) {
-                        politician.hotVotes = savedPolitician.hotVotes;
-                        politician.notVotes = savedPolitician.notVotes;
-                    }
-                });
-            }
-        };
-
-        const saveVotes = () => {
-            localStorage.setItem('politicianVotes', JSON.stringify(politicians));
+        // Show a status message
+        const showStatus = (message, isError = false) => {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            statusEl.style.backgroundColor = isError ? 'rgba(255, 0, 0, 0.2)' : 'rgba(0, 255, 0, 0.1)';
+            statusEl.style.borderColor = isError ? '#FF0000' : '#00FF00';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
         };
 
         // Calculate the score for a politician
         const calculateScore = (politician) => {
-            const totalVotes = politician.hotVotes + politician.notVotes;
+            const totalVotes = politician.hot_votes + politician.not_votes;
             if (totalVotes === 0) return 0;
-            return ((politician.hotVotes / totalVotes) * 100).toFixed(1);
+            return ((politician.hot_votes / totalVotes) * 100).toFixed(1);
         };
 
         // Sort politicians by score
@@ -350,6 +265,14 @@
             return [...politicians].sort((a, b) => {
                 const scoreA = parseFloat(calculateScore(a));
                 const scoreB = parseFloat(calculateScore(b));
+                
+                // If scores are equal, sort by total votes (higher first)
+                if (scoreB === scoreA) {
+                    const totalVotesA = a.hot_votes + a.not_votes;
+                    const totalVotesB = b.hot_votes + b.not_votes;
+                    return totalVotesB - totalVotesA;
+                }
+                
                 return scoreB - scoreA;
             });
         };
@@ -471,8 +394,8 @@
                     <td>${politician.name}</td>
                     <td>${politician.party}</td>
                     <td>${score}%</td>
-                    <td>${politician.hotVotes}</td>
-                    <td>${politician.notVotes}</td>
+                    <td>${politician.hot_votes}</td>
+                    <td>${politician.not_votes}</td>
                 `;
                 
                 tbody.appendChild(row);
@@ -495,40 +418,118 @@
             renderPoliticians();
         };
 
+        // Fetch politicians data from API
+        const fetchPoliticians = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/politicians`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch politicians data');
+                }
+                
+                politicians = await response.json();
+                
+                // Hide loading indicator and show politician container
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('politicianContainer').style.display = 'block';
+                
+                renderPoliticians();
+                renderResults();
+                fetchVoteStats();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loadingIndicator').textContent = 
+                    'Error loading data. Please check your API URL and try again.';
+                showStatus('Failed to connect to database. Check console for details.', true);
+            }
+        };
+
+        // Fetch vote statistics
+        const fetchVoteStats = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/stats`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch vote stats');
+                }
+                
+                const stats = await response.json();
+                document.getElementById('totalVotes').textContent = 
+                    `Total votes: ${stats.total_votes}`;
+            } catch (error) {
+                console.error('Error fetching vote stats:', error);
+            }
+        };
+
         // Vote functions
-        window.voteHot = (id) => {
-            const politician = politicians.find(p => p.id === id);
-            if (politician) {
-                const oldScore = calculateScore(politician);
-                politician.hotVotes++;
-                saveVotes();
+        window.voteHot = async (id) => {
+            try {
+                const response = await fetch(`${API_URL}/api/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        politician_id: id,
+                        vote_type: 'hot'
+                    })
+                });
                 
-                // Animate and reposition
-                animateVote(id);
-                renderResults();
+                if (!response.ok) {
+                    throw new Error('Failed to submit vote');
+                }
+                
+                const result = await response.json();
+                
+                // Update politician data in our local array
+                const politician = politicians.find(p => p.id === id);
+                if (politician) {
+                    politician.hot_votes = result.hot_votes;
+                    politician.not_votes = result.not_votes;
+                    
+                    // Animate and reposition
+                    animateVote(id);
+                    renderResults();
+                    fetchVoteStats();
+                    showStatus('Vote recorded: HOT! 🔥');
+                }
+            } catch (error) {
+                console.error('Error submitting vote:', error);
+                showStatus('Failed to submit vote. Please try again.', true);
             }
         };
-
-        window.voteNot = (id) => {
-            const politician = politicians.find(p => p.id === id);
-            if (politician) {
-                const oldScore = calculateScore(politician);
-                politician.notVotes++;
-                saveVotes();
+        
+        window.voteNot = async (id) => {
+            try {
+                const response = await fetch(`${API_URL}/api/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        politician_id: id,
+                        vote_type: 'not'
+                    })
+                });
                 
-                // Animate and reposition
-                animateVote(id);
-                renderResults();
+                if (!response.ok) {
+                    throw new Error('Failed to submit vote');
+                }
+                
+                const result = await response.json();
+                
+                // Update politician data in our local array
+                const politician = politicians.find(p => p.id === id);
+                if (politician) {
+                    politician.hot_votes = result.hot_votes;
+                    politician.not_votes = result.not_votes;
+                    
+                    // Animate and reposition
+                    animateVote(id);
+                    renderResults();
+                    fetchVoteStats();
+                    showStatus('Vote recorded: NOT! ❄️');
+                }
+            } catch (error) {
+                console.error('Error submitting vote:', error);
+                showStatus('Failed to submit vote. Please try again.', true);
             }
         };
-
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', () => {
-            addTransitionStyles();
-            loadVotes();
-            renderPoliticians();
-            renderResults();
-        });
-    </script>
-</body>
-</html>
