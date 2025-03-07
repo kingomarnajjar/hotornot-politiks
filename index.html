@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Australian Politicians Ranker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/roboto-mono/0.8.3/css/roboto-mono.min.css">
+    <style>
+        body {
+            font-family: 'Roboto Mono', monospace;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #000000;
+            color: #ffffff;
+            background-image: linear-gradient(to bottom, #1a0000, #000000);
+        }
+        h1 {
+            text-align: center;
+            color: #FF3300; /* Fiery Red */
+            text-shadow: 0 0 10px rgba(255, 51, 0, 0.6);
+        }
+        .intro {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .ranking-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .politician-card {
+            width: 250px;
+            background-color: #1a0000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(255, 51, 0, 0.4);
+            transition: all 0.3s ease;
+            border: 1px solid #3d0000;
+        }
+        .politician-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(255, 0, 0, 0.6), 0 0 20px rgba(255, 51, 0, 0.4);
+        }
+        .politician-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            filter: grayscale(50%) contrast(120%);
+            transition: filter 0.3s ease;
+        }
+        .politician-card:hover .politician-img {
+            filter: grayscale(30%) contrast(130%);
+        }
+        .politician-info {
+            padding: 15px;
+            background-image: linear-gradient(to bottom, #290000, #1a0000);
+        }
+        .politician-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+            color: #ffffff;
+        }
+        .politician-party {
+            color: #ff9980; /* Light red */
+            margin: 0 0 15px 0;
+        }
+        .rating-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .rating-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-family: 'Roboto Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .hot-btn {
+            background-color: #FF3300; /* Fiery Red */
+            color: white;
+        }
+        .not-btn {
+            background-color: #333333;
+            color: white;
+            border: 1px solid #3d0000;
+        }
+        .hot-btn:hover {
+            background-color: #FF0000; /* Pure Red */
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+        }
+        .not-btn:hover {
+            background-color: #555555;
+        }
+        .score {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #FF3300; /* Fiery Red */
+        }
+        .results-section {
+            margin-top: 50px;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #3d0000;
+        }
+        .results-table th, .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #3d0000;
+        }
+        .results-table th {
+            background-color: #FF3300; /* Fiery Red */
+            color: white;
+        }
+        .results-table tr:nth-child(even) {
+            background-color: #1a0000;
+        }
+        .results-table tr:hover {
+            background-color: #2a0000;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Australian Politicians: Hot or Not? 🔥</h1>
+    <div class="intro">
+        <p>Rate Australian politicians based on their attractiveness. Click "Hot" or "Not" to cast your vote!</p>
+    </div>
+    
+    <div class="ranking-container" id="politicianContainer">
+        <!-- Politicians will be dynamically added here -->
+    </div>
+    
+    <div class="results-section">
+        <h2>Current Rankings</h2>
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Party</th>
+                    <th>Score</th>
+                    <th>Hot Votes</th>
+                    <th>Not Votes</th>
+                </tr>
+            </thead>
+            <tbody id="resultsTable">
+                <!-- Results will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Australian politicians data
+        const politicians = [
+            {
+                id: 1,
+                name: "Anthony Albanese",
+                party: "Labor Party",
+                position: "Prime Minister",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Anthony_Albanese_portrait_%28re-crop%29.jpg/330px-Anthony_Albanese_portrait_%28re-crop%29.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 2,
+                name: "Peter Dutton",
+                party: "Liberal Party",
+                position: "Leader of the Opposition",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Peter_Dutton_2022.jpg/330px-Peter_Dutton_2022.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 3,
+                name: "Penny Wong",
+                party: "Labor Party",
+                position: "Foreign Minister",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Penny_Wong_2023.jpg/330px-Penny_Wong_2023.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 4,
+                name: "Adam Bandt",
+                party: "Greens",
+                position: "Leader of the Australian Greens",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Adam_Bandt_2022.jpg/330px-Adam_Bandt_2022.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 5,
+                name: "Tanya Plibersek",
+                party: "Labor Party",
+                position: "Minister for the Environment",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Tanya_Plibersek_2019.jpg/330px-Tanya_Plibersek_2019.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 6,
+                name: "Jim Chalmers",
+                party: "Labor Party",
+                position: "Treasurer",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Jim_Chalmers_2022.jpg/330px-Jim_Chalmers_2022.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 7,
+                name: "Sussan Ley",
+                party: "Liberal Party",
+                position: "Deputy Leader of the Opposition",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Sussan_Ley_2022.jpg/330px-Sussan_Ley_2022.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 8,
+                name: "Larissa Waters",
+                party: "Greens",
+                position: "Senator",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Larissa_Waters_2022.jpg/330px-Larissa_Waters_2022.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 9,
+                name: "Richard Marles",
+                party: "Labor Party",
+                position: "Deputy Prime Minister",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Richard_Marles_2022.jpg/330px-Richard_Marles_2022.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 10,
+                name: "Pauline Hanson",
+                party: "One Nation",
+                position: "Senator",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Pauline_Hanson_2022.jpg/330px-Pauline_Hanson_2022.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 11,
+                name: "Jacqui Lambie",
+                party: "Jacqui Lambie Network",
+                position: "Senator",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Senator_Jacqui_Lambie_2023.jpg/330px-Senator_Jacqui_Lambie_2023.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            },
+            {
+                id: 12,
+                name: "David Pocock",
+                party: "Independent",
+                position: "Senator",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Senator_David_Pocock_2022.jpg/330px-Senator_David_Pocock_2022.jpg",
+                hotVotes: 0,
+                notVotes: 0
+            }
+        ];
+
+        // Store user votes in local storage
+        const loadVotes = () => {
+            const savedVotes = localStorage.getItem('politicianVotes');
+            if (savedVotes) {
+                const parsedVotes = JSON.parse(savedVotes);
+                politicians.forEach(politician => {
+                    const savedPolitician = parsedVotes.find(p => p.id === politician.id);
+                    if (savedPolitician) {
+                        politician.hotVotes = savedPolitician.hotVotes;
+                        politician.notVotes = savedPolitician.notVotes;
+                    }
+                });
+            }
+        };
+
+        const saveVotes = () => {
+            localStorage.setItem('politicianVotes', JSON.stringify(politicians));
+        };
+
+        // Calculate the score for a politician
+        const calculateScore = (politician) => {
+            const totalVotes = politician.hotVotes + politician.notVotes;
+            if (totalVotes === 0) return 0;
+            return ((politician.hotVotes / totalVotes) * 100).toFixed(1);
+        };
+
+        // Render politician cards
+        const renderPoliticians = () => {
+            const container = document.getElementById('politicianContainer');
+            container.innerHTML = '';
+            
+            politicians.forEach(politician => {
+                const card = document.createElement('div');
+                card.className = 'politician-card';
+                
+                const score = calculateScore(politician);
+                
+                card.innerHTML = `
+                    <img src="${politician.image}" alt="${politician.name}" class="politician-img">
+                    <div class="politician-info">
+                        <h2 class="politician-name">${politician.name}</h2>
+                        <p class="politician-party">${politician.party} - ${politician.position}</p>
+                        <div class="rating-buttons">
+                            <button class="rating-btn hot-btn" onclick="voteHot(${politician.id})">Hot</button>
+                            <button class="rating-btn not-btn" onclick="voteNot(${politician.id})">Not</button>
+                        </div>
+                        <div class="score">Score: ${score}%</div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        };
+
+        // Render results table
+        const renderResults = () => {
+            const tbody = document.getElementById('resultsTable');
+            tbody.innerHTML = '';
+            
+            const sortedPoliticians = [...politicians].sort((a, b) => {
+                const scoreA = calculateScore(a);
+                const scoreB = calculateScore(b);
+                return scoreB - scoreA;
+            });
+            
+            sortedPoliticians.forEach((politician, index) => {
+                const score = calculateScore(politician);
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${politician.name}</td>
+                    <td>${politician.party}</td>
+                    <td>${score}%</td>
+                    <td>${politician.hotVotes}</td>
+                    <td>${politician.notVotes}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        };
+
+        // Vote functions
+        window.voteHot = (id) => {
+            const politician = politicians.find(p => p.id === id);
+            if (politician) {
+                politician.hotVotes++;
+                saveVotes();
+                renderPoliticians();
+                renderResults();
+            }
+        };
+
+        window.voteNot = (id) => {
+            const politician = politicians.find(p => p.id === id);
+            if (politician) {
+                politician.notVotes++;
+                saveVotes();
+                renderPoliticians();
+                renderResults();
+            }
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVotes();
+            renderPoliticians();
+            renderResults();
+        });
+    </script>
+</body>
+</html>
